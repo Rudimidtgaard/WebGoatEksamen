@@ -21,5 +21,7 @@ namespace WebGoatCore.Controllers
             view.StatusCode = code;
             return view;
         }
+
+
     }
 }

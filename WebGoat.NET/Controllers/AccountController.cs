@@ -195,6 +195,7 @@ namespace WebGoatCore.Controllers
             return View(model);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public IActionResult AddUserTemp()
         {
@@ -205,6 +206,7 @@ namespace WebGoatCore.Controllers
             return View(model);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> AddUserTemp(AddUserTempViewModel model)
         {

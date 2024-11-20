@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebGoatCore.Data;
@@ -17,6 +18,7 @@ namespace WebGoat.NET.Controllers
             _orderRepository = orderRepository;
         }
 
+        [Authorize(Roles = "Admin")]
         public IActionResult Manage()
         {
             return View(_orderRepository.GetAllOrders());
@@ -59,7 +61,7 @@ namespace WebGoat.NET.Controllers
         //{
         //    return View();
         //}
-
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         public IActionResult Edit(int id)
         {
