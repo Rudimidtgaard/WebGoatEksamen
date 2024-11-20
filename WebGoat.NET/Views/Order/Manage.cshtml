@@ -1,0 +1,28 @@
+﻿@model IEnumerable<Order>
+
+@{
+    ViewData["Title"] = "Manage";
+}
+
+<h1>Manage Orders</h1>
+<div>
+    <form asp-controller="Order" asp-action="Index">
+        <p>
+            <label>OrderID: <input type="text" name="SearchString" /></label>
+            <input type="submit" value="Find" />
+        </p>
+    </form>
+</div>
+<div>
+    <div>
+        <ul>
+            @foreach (var order in Model)
+            {
+                <li>
+                    <a asp-controller="Order" asp-action="Edit" asp-route-id="@order.OrderId">View Order details</a>
+                    @order.OrderId
+                </li>
+            }
+        </ul>
+    </div>
+</div>

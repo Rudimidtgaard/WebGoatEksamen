@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
 using System.Threading;
+using Microsoft.AspNetCore.Mvc;
 
 namespace WebGoatCore.Data
 {
@@ -99,7 +100,21 @@ namespace WebGoatCore.Data
             _context.OrderPayments.Add(orderPayment);
             _context.SaveChanges();
         }
+        public List<Order> GetAllOrders()
+        {
+            return _context.Orders.OrderByDescending(p => p.OrderDate).ToList();
+        }
 
+        //public IActionResult Index(string SearchString)
+        //{
+        //    // Retrieve orders based on the search string
+        //    var orders = _context.Orders
+        //                         .Where(o => o.OrderId.ToString().Contains(SearchString))
+        //                         .ToList();
+
+        //    // Pass the filtered orders to the view
+        //    return _context.Orders(orders);
+        //}
         public ICollection<Order> GetAllOrdersByCustomerId(string customerId)
         {
             return _context.Orders
