@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
 using System.Threading;
+using System.Data.SqlClient;
+using Dapper;
 
 namespace WebGoatCore.Data
 {
@@ -35,24 +37,64 @@ namespace WebGoatCore.Data
             // return order.OrderId;
 
             string shippedDate = order.ShippedDate.HasValue ? "'" + string.Format("yyyy-MM-dd", order.ShippedDate.Value) + "'" : "NULL";
-            var sql = "INSERT INTO Orders (" +
-                "CustomerId, EmployeeId, OrderDate, RequiredDate, ShippedDate, ShipVia, Freight, ShipName, ShipAddress, " +
-                "ShipCity, ShipRegion, ShipPostalCode, ShipCountry" +
-                ") VALUES (" +
-                $"'{order.CustomerId}','{order.EmployeeId}','{order.OrderDate:yyyy-MM-dd}','{order.RequiredDate:yyyy-MM-dd}'," +
-                $"{shippedDate},'{order.ShipVia}','{order.Freight}','{order.ShipName}','{order.ShipAddress}'," +
-                $"'{order.ShipCity}','{order.ShipRegion}','{order.ShipPostalCode}','{order.ShipCountry}')";
-            sql += ";\nSELECT OrderID FROM Orders ORDER BY OrderID DESC LIMIT 1;";
+            
+            //var sql = "INSERT INTO Orders (" +
+            //    "CustomerId, EmployeeId, OrderDate, RequiredDate, ShippedDate, ShipVia, Freight, ShipName, ShipAddress, " +
+            //    "ShipCity, ShipRegion, ShipPostalCode, ShipCountry" +
+            //    ") VALUES (" +
+            //    $"'{order.CustomerId}','{order.EmployeeId}','{order.OrderDate:yyyy-MM-dd}','{order.RequiredDate:yyyy-MM-dd}'," +
+            //    $"{shippedDate},'{order.ShipVia}','{order.Freight}','{order.ShipName}','{order.ShipAddress}'," +
+            //    $"'{order.ShipCity}','{order.ShipRegion}','{order.ShipPostalCode}','{order.ShipCountry}')";
+            //sql += ";\nSELECT OrderID FROM Orders ORDER BY OrderID DESC LIMIT 1;";
 
-            using (var command = _context.Database.GetDbConnection().CreateCommand())
+            //using (var command = _context.Database.GetDbConnection().CreateCommand())
+            //{
+            //    command.CommandText = sql;
+            //    _context.Database.OpenConnection();
+
+            //    using var dataReader = command.ExecuteReader();
+            //    dataReader.Read();
+            //    order.OrderId = Convert.ToInt32(dataReader[0]);
+            //}
+
+
+            // Solution using Dapper
+            var connectionString = "Data Source=NORTHWIND.sqlite;"; //TO-DO Fix connectionString https://www.learndapper.com/database-providers#dapper-sqlite
+
+            try
             {
-                command.CommandText = sql;
-                _context.Database.OpenConnection();
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    var dapperSql = @"INSERT INTO Orders CustomerId, EmployeeId, OrderDate, RequiredDate, ShippedDate, ShipVia, Freight, ShipName, ShipAddress, ShipCity, ShipRegion, ShipPostalCode, ShipCountry)
+                                VALUES (@CustomerId, @EmployeeId, @OrderDate, @RequiredDate, @ShippedDate, @ShipVia, @Freight, @ShipName, @ShipAddress, @ShipCity, @ShipRegion, @ShipPostalCode, @ShipCountry);
+                                SELECT OrderId FROM Orders WHERE rowid = last_insert_rowid()";
 
-                using var dataReader = command.ExecuteReader();
-                dataReader.Read();
-                order.OrderId = Convert.ToInt32(dataReader[0]);
+                    order.OrderId = connection.QuerySingle(dapperSql, new
+                    {
+                        CustomerId = order.CustomerId,
+                        EmployeeId = order.EmployeeId,
+                        OrderDate = order.OrderDate.ToString("yyyy-MM-dd"),
+                        RequiredDate = order.RequiredDate.ToString("yyyy-MM-dd"),
+                        ShippedDate = order.ShippedDate != null ? order.ShippedDate?.ToString("yyyy-MM-dd") : null,
+                        ShipVia = order.ShipVia,
+                        Freight = order.Freight,
+                        ShipName = order.ShipName,
+                        ShipAddress = order.ShipAddress,
+                        ShipCity = order.ShipCity,
+                        ShipRegion = order.ShipRegion,
+                        ShipPostalCode = order.ShipPostalCode,
+                        ShipCountry = order.ShipCountry
+                    });
+                }
             }
+            catch (Exception ex)
+            {
+                // Log error
+                throw;
+            }
+
+            string sql = string.Empty;
+
 
             sql = ";\nINSERT INTO OrderDetails (" +
                 "OrderId, ProductId, UnitPrice, Quantity, Discount" +
