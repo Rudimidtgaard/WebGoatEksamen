@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WebGoat.NET.Models;
 
 namespace WebGoatCore.Data
 {
@@ -15,7 +16,7 @@ namespace WebGoatCore.Data
             _context = context;
         }
 
-        public BlogEntry CreateBlogEntry(string title, string contents, string username)
+        public BlogEntry CreateBlogEntry(string title, BlogContents contents, string username)
         {
             var entry = new BlogEntry
             {

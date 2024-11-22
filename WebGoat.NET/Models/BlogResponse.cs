@@ -1,4 +1,5 @@
 ﻿using System;
+using WebGoat.NET.Models;
 
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 namespace WebGoatCore.Models
@@ -9,7 +10,7 @@ namespace WebGoatCore.Models
         public int BlogEntryId { get; set; }
         public DateTime ResponseDate { get; set; }
         public string Author { get; set; }
-        public string Contents { get; set; }
+        public BlogContents Contents { get; set; }
 
         public virtual BlogEntry BlogEntry { get; set; }
     }
