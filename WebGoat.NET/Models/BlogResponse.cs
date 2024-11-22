@@ -13,5 +13,14 @@ namespace WebGoatCore.Models
         public BlogContents Contents { get; set; }
 
         public virtual BlogEntry BlogEntry { get; set; }
+
+        public BlogResponse(BlogContents blogContents) 
+        { 
+            Contents = blogContents;    
+        }
+        public BlogResponse()
+        {
+
+        }
     }
 }

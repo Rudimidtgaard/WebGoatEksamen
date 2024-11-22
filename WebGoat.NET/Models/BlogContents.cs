@@ -5,18 +5,19 @@ namespace WebGoat.NET.Models
 {
     public class BlogContents
     {
-        private string _blogContents { get; set; }
+        private string blogContents;
 
-        public BlogContents(string _blogContents)
+        public BlogContents(string blogContents)
         {
-            IsBlogContentValid(_blogContents);
-            this._blogContents = _blogContents;
+            IsBlogContentValid(blogContents);
+            this.blogContents = blogContents;
         }
-
+        
         public string GetValue()
         {
-            return _blogContents;
+            return this.blogContents;
         }
+        
         private void IsBlogContentValid(string blogContents)
         {
             string pattern = @"^[a-zA-ZæøåÆØÅ.,!?]+$";
