@@ -54,6 +54,8 @@ namespace WebGoatCore.Data
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<OrderDetail>().HasKey(a => new { a.ProductId, a.OrderId });
+            modelBuilder.Entity<BlogEntry>().OwnsOne(e => e.Contents);
+            modelBuilder.Entity<BlogResponse>().OwnsOne(e => e.Content);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

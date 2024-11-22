@@ -5,14 +5,9 @@ namespace WebGoat.NET.ViewModels
 {
     public class BlogContentViewModel
     {
-        public string blogContents {  get; set; }
+        public int EntryId { get; set; }
+        public string Author { get; set; }
+        public string Content { get; set; }
 
-
-        public BlogResponse ToModel()
-        {
-            return new BlogResponse(
-                new BlogContents(blogContents)
-                );
-        }
     }
 }
