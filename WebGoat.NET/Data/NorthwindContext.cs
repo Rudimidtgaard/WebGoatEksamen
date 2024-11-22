@@ -7,6 +7,7 @@ using Microsoft.Data.Sqlite;
 using System.IO;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using System.Data;
 
 namespace WebGoatCore.Data
 {
@@ -36,6 +37,11 @@ namespace WebGoatCore.Data
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
             : base(options)
         {
+        }
+
+        public static IDbConnection GetDapperConnection()
+        {
+            return new SqliteConnection(ConnString);
         }
 
         public DbSet<BlogEntry> BlogEntries { get; set; }

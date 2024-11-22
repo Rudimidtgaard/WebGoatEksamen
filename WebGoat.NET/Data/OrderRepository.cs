@@ -7,6 +7,10 @@ using System.Globalization;
 using System.Threading;
 using System.Data.SqlClient;
 using Dapper;
+using System.Data.SQLite;
+using System.IO;
+using Microsoft.Data.Sqlite;
+using System.Configuration;
 
 namespace WebGoatCore.Data
 {
@@ -36,46 +40,38 @@ namespace WebGoatCore.Data
             // _context.SaveChanges();
             // return order.OrderId;
 
-            string shippedDate = order.ShippedDate.HasValue ? "'" + string.Format("yyyy-MM-dd", order.ShippedDate.Value) + "'" : "NULL";
-            
-            //var sql = "INSERT INTO Orders (" +
-            //    "CustomerId, EmployeeId, OrderDate, RequiredDate, ShippedDate, ShipVia, Freight, ShipName, ShipAddress, " +
-            //    "ShipCity, ShipRegion, ShipPostalCode, ShipCountry" +
-            //    ") VALUES (" +
-            //    $"'{order.CustomerId}','{order.EmployeeId}','{order.OrderDate:yyyy-MM-dd}','{order.RequiredDate:yyyy-MM-dd}'," +
-            //    $"{shippedDate},'{order.ShipVia}','{order.Freight}','{order.ShipName}','{order.ShipAddress}'," +
-            //    $"'{order.ShipCity}','{order.ShipRegion}','{order.ShipPostalCode}','{order.ShipCountry}')";
-            //sql += ";\nSELECT OrderID FROM Orders ORDER BY OrderID DESC LIMIT 1;";
-
-            //using (var command = _context.Database.GetDbConnection().CreateCommand())
-            //{
-            //    command.CommandText = sql;
-            //    _context.Database.OpenConnection();
-
-            //    using var dataReader = command.ExecuteReader();
-            //    dataReader.Read();
-            //    order.OrderId = Convert.ToInt32(dataReader[0]);
-            //}
-
 
             // Solution using Dapper
-            var connectionString = "Data Source=NORTHWIND.sqlite;"; //TO-DO Fix connectionString https://www.learndapper.com/database-providers#dapper-sqlite
+            // https://www.learndapper.com/saving-data/insert
+            // https://www.learndapper.com/saving-data/insert#dapper-insert-multiple-rows (for orderDetails)
+            // https://stackoverflow.com/questions/17150542/how-to-insert-a-c-sharp-list-to-database-using-dapper-net (for orderDetails)
+            // https://www.learndapper.com/parameters
+            // https://www.learndapper.com/misc/transaction
+            // https://www.sqlite.org/c3ref/last_insert_rowid.html
 
-            try
+            using (var connection = NorthwindContext.GetDapperConnection())
             {
-                using (var connection = new SqlConnection(connectionString))
-                {
-                    var dapperSql = @"INSERT INTO Orders CustomerId, EmployeeId, OrderDate, RequiredDate, ShippedDate, ShipVia, Freight, ShipName, ShipAddress, ShipCity, ShipRegion, ShipPostalCode, ShipCountry)
-                                VALUES (@CustomerId, @EmployeeId, @OrderDate, @RequiredDate, @ShippedDate, @ShipVia, @Freight, @ShipName, @ShipAddress, @ShipCity, @ShipRegion, @ShipPostalCode, @ShipCountry);
-                                SELECT OrderId FROM Orders WHERE rowid = last_insert_rowid()";
+                connection.Open();
 
-                    order.OrderId = connection.QuerySingle(dapperSql, new
+                // De 3 sql'er skulle have været pakket ind i en transaction.
+                // Men pga. opbygningen af Foreign Key Trigger constraints på OrderDetail
+                // tror jeg ikke triggeren kan finde OrderId, fordi den ikke er commited til databasen
+
+                //using (var transaction =  connection.BeginTransaction())
+
+                try
+                {
+                    string createOrderSql = @"INSERT INTO Orders (CustomerId, EmployeeId, OrderDate, RequiredDate, ShippedDate, ShipVia, Freight, ShipName, ShipAddress, ShipCity, ShipRegion, ShipPostalCode, ShipCountry)
+                                                VALUES (@CustomerId, @EmployeeId, @OrderDate, @RequiredDate, @ShippedDate, @ShipVia, @Freight, @ShipName, @ShipAddress, @ShipCity, @ShipRegion, @ShipPostalCode, @ShipCountry);
+                                                SELECT OrderId FROM Orders WHERE rowid = last_insert_rowid()"; // could be simplified to select last_insert_rowid(); ?
+
+                    order.OrderId = connection.QuerySingle<int>(createOrderSql, new
                     {
                         CustomerId = order.CustomerId,
                         EmployeeId = order.EmployeeId,
                         OrderDate = order.OrderDate.ToString("yyyy-MM-dd"),
                         RequiredDate = order.RequiredDate.ToString("yyyy-MM-dd"),
-                        ShippedDate = order.ShippedDate != null ? order.ShippedDate?.ToString("yyyy-MM-dd") : null,
+                        ShippedDate = order.ShippedDate.HasValue ? order.ShippedDate?.ToString("yyyy-MM-dd") : null,
                         ShipVia = order.ShipVia,
                         Freight = order.Freight,
                         ShipName = order.ShipName,
@@ -85,43 +81,41 @@ namespace WebGoatCore.Data
                         ShipPostalCode = order.ShipPostalCode,
                         ShipCountry = order.ShipCountry
                     });
+
+                    string createOrderDetailsSql = @"INSERT INTO OrderDetails (OrderId, ProductId, UnitPrice, Quantity, Discount)
+                                                        VALUES(@OrderId, @ProductId, @UnitPrice, @Quantity, @Discount)";
+
+                    int orderDetailsRowsAffected = connection.Execute(createOrderDetailsSql, order.OrderDetails); // Check if rowsAffected > 0 
+
+                    string createShipmentSql = @"INSERT INTO Shipments (OrderId, ShipperId, ShipmentDate, TrackingNumber)
+                                                    VALUES (@OrderId, @ShipperId, @ShipmentDate, @TrackingNumber)";
+
+                    if (order.Shipment != null)
+                    {
+                        int shipmentRowsAffected = connection.Execute(createShipmentSql, new
+                        {
+                            OrderId = order.Shipment.OrderId,
+                            ShipperId = order.Shipment.ShipmentId,
+                            ShipmentDate = order.Shipment.ShipmentDate.ToString("yyyy-MM-dd"),
+                            TrackingNumber = order.Shipment.TrackingNumber
+                        });
+                    }
+
+                    //transaction.Commit();
                 }
-            }
-            catch (Exception ex)
-            {
-                // Log error
-                throw;
-            }
+                catch (Exception ex)
+                {
+                    //transaction.Rollback();
+                    throw;
+                }
+                finally
+                {
+                    connection.Close();
+                }
 
-            string sql = string.Empty;
 
+                
 
-            sql = ";\nINSERT INTO OrderDetails (" +
-                "OrderId, ProductId, UnitPrice, Quantity, Discount" +
-                ") VALUES ";
-            foreach (var (orderDetails, i) in order.OrderDetails.WithIndex())
-            {
-                orderDetails.OrderId = order.OrderId;
-                sql += (i > 0 ? "," : "") +
-                    $"('{orderDetails.OrderId}','{orderDetails.ProductId}','{orderDetails.UnitPrice}','{orderDetails.Quantity}'," +
-                    $"'{orderDetails.Discount}')";
-            }
-
-            if (order.Shipment != null)
-            {
-                var shipment = order.Shipment;
-                shipment.OrderId = order.OrderId;
-                sql += ";\nINSERT INTO Shipments (" +
-                    "OrderId, ShipperId, ShipmentDate, TrackingNumber" +
-                    ") VALUES (" +
-                    $"'{shipment.OrderId}','{shipment.ShipperId}','{shipment.ShipmentDate:yyyy-MM-dd}','{shipment.TrackingNumber}')";
-            }
-
-            using (var command = _context.Database.GetDbConnection().CreateCommand())
-            {
-                command.CommandText = sql;
-                _context.Database.OpenConnection();
-                command.ExecuteNonQuery();
             }
 
             return order.OrderId;
