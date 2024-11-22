@@ -56,13 +56,9 @@ namespace WebGoat.NET.Controllers
             }
         }
 
-        // GET: OrderController/Edit/5
-        //public ActionResult Edit(int id)
-        //{
-        //    return View();
-        //}
+
         [Authorize(Roles = "Admin")]
-        [HttpGet("{id}")]
+        [HttpGet("Order/Edit/{id}")]
         public IActionResult Edit(int id)
         {
 
@@ -76,18 +72,22 @@ namespace WebGoat.NET.Controllers
         }
 
         // POST: OrderController/Edit/5
-        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [HttpPost("Order/Edit/{id}")]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public IActionResult Edit(int id, OrderEditViewModel model)
         {
-            try
+            if (ModelState.IsValid)
             {
-                return RedirectToAction(nameof(Index));
+                // Update order in the repository
+                _orderRepository.UpdateOrder(model.Order);
+
+                // Redirect to Manage view after successful update
+                return RedirectToAction("Manage");
             }
-            catch
-            {
-                return View();
-            }
+
+            // If validation fails, return the same view with the model
+            return View(model);
         }
 
         // GET: OrderController/Delete/5

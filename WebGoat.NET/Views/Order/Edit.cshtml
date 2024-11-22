@@ -11,19 +11,11 @@
 <p><b>Order Date:</b> @Model.Order.OrderDate</p>
 <p><b>Customer:</b> @Model.Order.Customer.ContactName, @Model.Order.Customer.ContactTitle | @Model.Order.Customer.CompanyName</p>
 <p><b>Shipping Address:</b> @Model.Order.ShipAddress, @Model.Order.ShipCity, @Model.Order.ShipCountry</p>
+<p><b>CustomerID:</b> @Model.Order.CustomerId</p>
+
 
 
 <h2>Products:</h2>
-@* <ul>
-    @foreach (var detail in Model.Order.OrderDetails)
-    {
-        <li>
-            Product: @detail.Product.ProductName<br />
-            Quantity: @detail.Quantity<br />
-            Unit Price: @detail.Product.UnitPrice<br />
-        </li>
-    }
-</ul> *@
 @Html.ValidationSummary(true)
 <br>
 <div class="accountInfo">
@@ -33,8 +25,6 @@
             <legend>Order information</legend>
             @for (int i = 0; i < Model.Order.OrderDetails.Count; i++)
             {
-                @for(int j = 0; j <Model.Order.OrderPayments.Count; j++)
-                {
                     <p>
                         @Html.LabelFor(m => m.Order.OrderDetails[i].Product.ProductName, "Product:")
                         @Html.DisplayFor(m => m.Order.OrderDetails[i].Product.ProductName)
@@ -47,27 +37,32 @@
                                 new { @value = Model.Order.OrderDetails[i]?.Quantity })
                         @Html.ValidationMessageFor(m => m.Order.OrderDetails[i].Quantity)
                     </p>
+                    <p>
+                        @Html.LabelFor(m => m.Order.OrderDetails[i].Discount, "Discount:")
+                        @Html.TextBoxFor(m => m.Order.OrderDetails[i].Discount,
+                                 new { @value = Model.Order.OrderDetails[i].Discount})
+                        @Html.ValidationMessageFor(m => m.Order.OrderDetails[i].Discount)
+                    </p>
 
                     <p>
                         @Html.LabelFor(m => m.Order.OrderDetails[i].Product.UnitPrice, "Unit Price")
                         @Html.DisplayFor(m => m.Order.OrderDetails[i].Product.UnitPrice)
                         @Html.ValidationMessageFor(m => m.Order.OrderDetails[i].Product.UnitPrice)
                     </p>
-                    <p>
-                        @Html.LabelFor(m => m.Order.OrderDetails[i].Order.SubTotal, "Sub Total")
-                        @Html.DisplayFor(m => m.Order.OrderDetails[i].Order.SubTotal)
-                        @Html.ValidationMessageFor(m => m.Order.OrderDetails[i].Order.SubTotal)
-                    </p>
-                    <p>
+
+
+@*                     <p>
                         @Html.LabelFor(m => m.Order.OrderPayments[i].AmountPaid, "Total with shipping")
                         @Html.DisplayFor(m => m.Order.OrderPayments[i].AmountPaid)
                         @Html.ValidationMessageFor(m => m.Order.OrderPayments[i].AmountPaid)
-                    </p>
-                }
+                    </p> *@                
             }
+
         </fieldset>
-        <p class="submitButton">
-            <input type="submit" value="Save changes">
-        </p>
+        <form action="/submit-changes" method="POST">
+            <p class="submitButton">
+                <input type="submit" value="Save changes">
+            </p>
+        </form>
     }
 </div>

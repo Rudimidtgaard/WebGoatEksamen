@@ -43,7 +43,7 @@ namespace WebGoatCore.Data
                 $"'{order.CustomerId}','{order.EmployeeId}','{order.OrderDate:yyyy-MM-dd}','{order.RequiredDate:yyyy-MM-dd}'," +
                 $"{shippedDate},'{order.ShipVia}','{order.Freight}','{order.ShipName}','{order.ShipAddress}'," +
                 $"'{order.ShipCity}','{order.ShipRegion}','{order.ShipPostalCode}','{order.ShipCountry}')";
-            sql += ";\nSELECT OrderID FROM Orders ORDER BY OrderID DESC LIMIT 1;";
+            //sql += ";SELECT OrderID FROM Orders ORDER BY OrderID DESC LIMIT 1;";
 
             using (var command = _context.Database.GetDbConnection().CreateCommand())
             {
@@ -85,6 +85,63 @@ namespace WebGoatCore.Data
 
             return order.OrderId;
         }
+
+        public void UpdateOrder(Order order)
+        {
+            // Attach the order to the DbContext if it's not already tracked
+            var existingOrder = _context.Orders
+                .Include(o => o.OrderDetails)
+                .FirstOrDefault(o => o.OrderId == order.OrderId);
+
+            if (existingOrder == null)
+            {
+                throw new ArgumentException($"Order with ID {order.OrderId} does not exist.");
+            }
+
+            // Update scalar properties
+            existingOrder.OrderDate = order.OrderDate;
+            existingOrder.RequiredDate = order.RequiredDate;
+            existingOrder.ShippedDate = order.ShippedDate;
+            existingOrder.Freight = order.Freight;
+            existingOrder.ShipName = order.ShipName;
+            existingOrder.ShipAddress = order.ShipAddress;
+            existingOrder.ShipCity = order.ShipCity;
+            existingOrder.ShipRegion = order.ShipRegion;
+            existingOrder.ShipPostalCode = order.ShipPostalCode;
+            existingOrder.ShipCountry = order.ShipCountry;
+
+            // Update related OrderDetails
+            foreach (var detail in order.OrderDetails)
+            {
+                var existingDetail = existingOrder.OrderDetails
+                    .FirstOrDefault(od => od.OrderId == detail.OrderId);
+
+                if (existingDetail != null)
+                {
+                    // Update existing detail
+                    existingDetail.Quantity = detail.Quantity;
+                    existingDetail.Discount = detail.Discount;
+                }
+                else
+                {
+                    // Add new detail
+                    existingOrder.OrderDetails.Add(detail);
+                }
+            }
+
+            // Remove details no longer in the updated order
+            foreach (var existingDetail in existingOrder.OrderDetails.ToList())
+            {
+                if (!order.OrderDetails.Any(od => od.OrderId == existingDetail.OrderId))
+                {
+                    _context.OrderDetails.Remove(existingDetail);
+                }
+            }
+
+            // Save changes to the database
+            _context.SaveChanges();
+        }
+
 
         public void CreateOrderPayment(int orderId, decimal amountPaid, string creditCardNumber, DateTime expirationDate, string approvalCode)
         {
