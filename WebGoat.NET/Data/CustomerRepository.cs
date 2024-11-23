@@ -13,7 +13,7 @@ namespace WebGoatCore.Data
             _context = context;
         }
 
-        public Customer? GetCustomerByUsername(string username)
+        public Customer? GetCustomerByUsername(ContactName username)
         {
             return _context.Customers.FirstOrDefault(c => c.ContactName == username);
         }
@@ -30,7 +30,7 @@ namespace WebGoatCore.Data
         }
 
         //TODO: Add try/catch logic
-        public string CreateCustomer(string companyName, string contactName, string? address, string? city, string? region, string? postalCode, string? country)
+        public string CreateCustomer(CompanyName companyName, ContactName contactName, Address? address, City? city, Region? region, PostalCode? postalCode, Country? country)
         {
             var customerId = GenerateCustomerId(companyName);
             var customer = new Customer()
@@ -57,10 +57,10 @@ namespace WebGoatCore.Data
         /// <summary>Returns an unused CustomerId based on the company name</summary>
         /// <param name="companyName">What we want to base the CompanyId on.</param>
         /// <returns>An unused CustomerId.</returns>
-        private string GenerateCustomerId(string companyName)
+        private string GenerateCustomerId(CompanyName companyName)
         {
             var random = new Random();
-            var customerId = companyName.Replace(" ", "");
+            var customerId = companyName.GetValue().Replace(" ", "");
             customerId = (customerId.Length >= 5) ? customerId.Substring(0, 5) : customerId;
             while (CustomerIdExists(customerId))
             {
