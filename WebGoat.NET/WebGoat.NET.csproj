@@ -8,6 +8,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Models\BlogModels\**" />
+    <Compile Remove="Models\NewFolder - Copy\**" />
+    <Content Remove="Models\BlogModels\**" />
+    <Content Remove="Models\NewFolder - Copy\**" />
+    <EmbeddedResource Remove="Models\BlogModels\**" />
+    <EmbeddedResource Remove="Models\NewFolder - Copy\**" />
+    <None Remove="Models\BlogModels\**" />
+    <None Remove="Models\NewFolder - Copy\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="NORTHWND.sqlite">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -287,6 +298,10 @@
     <Content Update="wwwroot\js\site.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Models\Blog\" />
   </ItemGroup>
 
 </Project>

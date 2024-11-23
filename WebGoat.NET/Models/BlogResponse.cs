@@ -8,13 +8,13 @@ namespace WebGoatCore.Models
     {
         public int Id { get; set; }
         public int BlogEntryId { get; set; }
-        public DateTime ResponseDate { get; set; }
+        public BlogContent Content { get; set; }
         public string Author { get; set; }
-        public BlogContents Content { get; set; }
+        public DateTime ResponseDate { get; set; }
 
         public virtual BlogEntry BlogEntry { get; set; }
 
-        public BlogResponse(BlogContents blogContents) 
+        public BlogResponse(BlogContent blogContents) 
         { 
             this.Content = blogContents;    
         }

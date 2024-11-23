@@ -37,7 +37,7 @@ namespace WebGoatCore.Controllers
         {
             try
             {
-                var blogContent = new BlogContents(request.Content);
+                var blogContent = new BlogContent(request.Content);
 
 
                 var userName = User?.Identity?.Name ?? "Anonymous";
@@ -69,7 +69,7 @@ namespace WebGoatCore.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult Create(string title, BlogContentViewModel request)
         {
-            var blogContent = new BlogContents(request.Content);
+            var blogContent = new BlogContent(request.Content);
             var blogEntry = _blogEntryRepository.CreateBlogEntry(title, blogContent, User!.Identity!.Name!);
             return View(blogEntry);
         }

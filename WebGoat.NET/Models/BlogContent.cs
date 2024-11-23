@@ -5,16 +5,22 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace WebGoat.NET.Models
 {
-    public class BlogContents
+    public class BlogContent
     {
         private string blogContents;
 
-        public BlogContents(string blogContents)
+        public BlogContent(string blogContents)
         {
             IsBlogContentValid(blogContents);
             this.blogContents = blogContents;
         }
-        protected BlogContents() { }
+        protected BlogContent() { }
+
+        public string Value // Public property for EF Core mapping
+        {
+            get => blogContents;
+            private set => blogContents = value; // Required for EF Core to set the value during materialization
+        }
         public string GetValue()
         {
             return this.blogContents;
@@ -35,5 +41,6 @@ namespace WebGoat.NET.Models
                 throw new ArgumentException("XSS not allowed 🤬");
             }
         }
+
     }
 }

@@ -32,6 +32,8 @@ namespace WebGoatCore.Data
         });
 
 #pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+
+
         public NorthwindContext(DbContextOptions<NorthwindContext> options)
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
             : base(options)
@@ -54,7 +56,7 @@ namespace WebGoatCore.Data
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<OrderDetail>().HasKey(a => new { a.ProductId, a.OrderId });
-            modelBuilder.Entity<BlogEntry>().OwnsOne(e => e.Contents);
+            modelBuilder.Entity<BlogEntry>().OwnsOne(e => e.Content);
             modelBuilder.Entity<BlogResponse>().OwnsOne(e => e.Content);
         }
 
