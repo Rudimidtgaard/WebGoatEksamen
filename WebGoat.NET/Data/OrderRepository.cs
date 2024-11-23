@@ -11,6 +11,8 @@ using System.Data.SQLite;
 using System.IO;
 using Microsoft.Data.Sqlite;
 using System.Configuration;
+using System.Data.Common;
+using System.Data;
 
 namespace WebGoatCore.Data
 {
@@ -53,72 +55,31 @@ namespace WebGoatCore.Data
             {
                 connection.Open();
 
-                // De 3 sql'er skulle have været pakket ind i en transaction.
-                // Men pga. opbygningen af Foreign Key Trigger constraints på OrderDetail
-                // tror jeg ikke triggeren kan finde OrderId, fordi den ikke er commited til databasen
-
-                //using (var transaction =  connection.BeginTransaction())
-
-                try
+                using (var transaction = connection.BeginTransaction())
                 {
-                    string createOrderSql = @"INSERT INTO Orders (CustomerId, EmployeeId, OrderDate, RequiredDate, ShippedDate, ShipVia, Freight, ShipName, ShipAddress, ShipCity, ShipRegion, ShipPostalCode, ShipCountry)
-                                                VALUES (@CustomerId, @EmployeeId, @OrderDate, @RequiredDate, @ShippedDate, @ShipVia, @Freight, @ShipName, @ShipAddress, @ShipCity, @ShipRegion, @ShipPostalCode, @ShipCountry);
-                                                SELECT OrderId FROM Orders WHERE rowid = last_insert_rowid()"; // could be simplified to select last_insert_rowid(); ?
-
-                    order.OrderId = connection.QuerySingle<int>(createOrderSql, new
+                    try
                     {
-                        CustomerId = order.CustomerId,
-                        EmployeeId = order.EmployeeId,
-                        OrderDate = order.OrderDate.ToString("yyyy-MM-dd"),
-                        RequiredDate = order.RequiredDate.ToString("yyyy-MM-dd"),
-                        ShippedDate = order.ShippedDate.HasValue ? order.ShippedDate?.ToString("yyyy-MM-dd") : null,
-                        ShipVia = order.ShipVia,
-                        Freight = order.Freight,
-                        ShipName = order.ShipName,
-                        ShipAddress = order.ShipAddress,
-                        ShipCity = order.ShipCity,
-                        ShipRegion = order.ShipRegion,
-                        ShipPostalCode = order.ShipPostalCode,
-                        ShipCountry = order.ShipCountry
-                    });
+                        int insertedOrderId = InsertOrder(connection, transaction, order);
 
-                    string createOrderDetailsSql = @"INSERT INTO OrderDetails (OrderId, ProductId, UnitPrice, Quantity, Discount)
-                                                        VALUES(@OrderId, @ProductId, @UnitPrice, @Quantity, @Discount)";
+                        InsertOrderDetails(connection, transaction, order.OrderDetails, insertedOrderId);
 
-                    int orderDetailsRowsAffected = connection.Execute(createOrderDetailsSql, order.OrderDetails); // Check if rowsAffected > 0 
+                        InsertShipment(connection, transaction, order.Shipment!, insertedOrderId);
 
-                    string createShipmentSql = @"INSERT INTO Shipments (OrderId, ShipperId, ShipmentDate, TrackingNumber)
-                                                    VALUES (@OrderId, @ShipperId, @ShipmentDate, @TrackingNumber)";
+                        transaction.Commit();
 
-                    if (order.Shipment != null)
-                    {
-                        int shipmentRowsAffected = connection.Execute(createShipmentSql, new
-                        {
-                            OrderId = order.Shipment.OrderId,
-                            ShipperId = order.Shipment.ShipmentId,
-                            ShipmentDate = order.Shipment.ShipmentDate.ToString("yyyy-MM-dd"),
-                            TrackingNumber = order.Shipment.TrackingNumber
-                        });
+                        return insertedOrderId;
                     }
-
-                    //transaction.Commit();
+                    catch (Exception)
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                    finally
+                    {
+                        connection.Close();
+                    }
                 }
-                catch (Exception ex)
-                {
-                    //transaction.Rollback();
-                    throw;
-                }
-                finally
-                {
-                    connection.Close();
-                }
-
-
-                
-
             }
-
-            return order.OrderId;
         }
 
         public void CreateOrderPayment(int orderId, decimal amountPaid, string creditCardNumber, DateTime expirationDate, string approvalCode)
@@ -143,6 +104,69 @@ namespace WebGoatCore.Data
                 .OrderByDescending(o => o.OrderDate)
                 .ThenByDescending(o => o.OrderId)
                 .ToList();
+        }
+
+        private int InsertOrder(IDbConnection connection, IDbTransaction transaction, Order order)
+        {
+            string sql = @"INSERT INTO Orders (CustomerId, EmployeeId, OrderDate, RequiredDate, ShippedDate, ShipVia, Freight, ShipName, ShipAddress, ShipCity, ShipRegion, ShipPostalCode, ShipCountry)
+                                              VALUES (@CustomerId, @EmployeeId, @OrderDate, @RequiredDate, @ShippedDate, @ShipVia, @Freight, @ShipName, @ShipAddress, @ShipCity, @ShipRegion, @ShipPostalCode, @ShipCountry);
+                                              SELECT last_insert_rowid();";
+
+            return connection.QuerySingle<int>(sql, new
+            {
+                CustomerId = order.CustomerId,
+                EmployeeId = order.EmployeeId,
+                OrderDate = order.OrderDate.ToString("yyyy-MM-dd"),
+                RequiredDate = order.RequiredDate.ToString("yyyy-MM-dd"),
+                ShippedDate = order.ShippedDate.HasValue ? order.ShippedDate?.ToString("yyyy-MM-dd") : null,
+                ShipVia = order.ShipVia,
+                Freight = order.Freight,
+                ShipName = order.ShipName,
+                ShipAddress = order.ShipAddress,
+                ShipCity = order.ShipCity,
+                ShipRegion = order.ShipRegion,
+                ShipPostalCode = order.ShipPostalCode,
+                ShipCountry = order.ShipCountry
+            }, transaction);
+        }
+
+        private void InsertOrderDetails(IDbConnection connection, IDbTransaction transaction, IEnumerable<OrderDetail> orderDetails, int orderId)
+        {
+            if (orderDetails != null && orderDetails.Any())
+            {
+                foreach (var orderDetail in orderDetails)
+                {
+                    orderDetail.OrderId = orderId;
+                }
+
+                string sql = @"INSERT INTO OrderDetails (OrderId, ProductId, UnitPrice, Quantity, Discount)
+                                                        VALUES(@OrderId, @ProductId, @UnitPrice, @Quantity, @Discount)";
+
+                int rowsAffected = connection.Execute(sql, orderDetails, transaction);
+
+                if (rowsAffected == 0)
+                    throw new Exception("Something when wrong when trying to insert OrderDetails");
+            }
+        }
+
+        private void InsertShipment(IDbConnection connection, IDbTransaction transaction, Shipment shipment, int orderId)
+        {
+            if (shipment != null)
+            {
+                string sql = @"INSERT INTO Shipments (OrderId, ShipperId, ShipmentDate, TrackingNumber)
+                                                    VALUES (@OrderId, @ShipperId, @ShipmentDate, @TrackingNumber)";
+
+                int rowsAffected = connection.Execute(sql, new 
+                {
+                    OrderId = orderId,
+                    ShipperId = shipment.ShipperId,
+                    ShipmentDate = shipment.ShipmentDate.ToString("yyyy-MM-dd"),
+                    TrackingNumber = shipment.TrackingNumber
+                }, transaction);
+
+                if (rowsAffected == 0)
+                    throw new Exception("Something when wrong when trying to insert Shipment");
+            }
         }
     }
 }
