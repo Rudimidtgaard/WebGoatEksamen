@@ -26,9 +26,9 @@ namespace WebGoatCore.Models
                 throw new ArgumentException("Phone cannot be empty");
             }
 
-            if (value.Length >= 2 && value.Length <= 60)
+            if (value.Length >= 8 && value.Length <= 16)
             {
-                string pattern = @"^([A-Za-zÆØÅæøåÀ-ÖØ-öø-ÿ\s\.\'\-]+)\s+(\d+[A-Za-z]?)\s*,?\s*(\d+[A-Za-z]?\s*(th|tv|st|etg|fl|fl.|etc|[A-Za-z])*)?$";
+                string pattern = @"^(\+45\s?)?(\(?\d{2}\)?[\s\-]?)?\d{2}[\s\-]?\d{2}[\s\-]?\d{2}$";
 
                 if (!Regex.IsMatch(value, pattern))
                 {

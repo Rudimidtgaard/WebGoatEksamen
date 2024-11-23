@@ -58,19 +58,19 @@ namespace WebGoatCore.Controllers
             var customer = GetCustomerOrAddError();
             if (customer != null)
             {
+                // Load credit card details
                 var creditCard = GetCreditCardForUser();
+                _model.CreditCard = creditCard?.Number ?? string.Empty;
+                _model.ExpirationMonth = creditCard?.Expiry.Month ?? 0;
+                _model.ExpirationYear = creditCard?.Expiry.Year ?? 0;
 
-                creditCard.GetCardForUser();
-                _model.CreditCard = creditCard.Number;
-                _model.ExpirationMonth = creditCard.Expiry.Month;
-                _model.ExpirationYear = creditCard.Expiry.Year;
-
-                _model.ShipTarget = customer.CompanyName;
-                _model.Address = customer.Address ?? string.Empty;
-                _model.City = customer.City ?? string.Empty;
-                _model.Region = customer.Region ?? string.Empty;
-                _model.PostalCode = customer.PostalCode ?? string.Empty;
-                _model.Country = customer.Country ?? string.Empty;
+                // Assign encapsulated customer details
+                _model.ShipTarget = customer.CompanyName?.GetValue() ?? string.Empty;
+                _model.Address = customer.Address?.GetValue() ?? string.Empty;
+                _model.City = customer.City?.GetValue() ?? string.Empty;
+                _model.Region = customer.Region?.GetValue() ?? string.Empty;
+                _model.PostalCode = customer.PostalCode?.GetValue() ?? string.Empty;
+                _model.Country = customer.Country?.GetValue() ?? string.Empty;
             }
         }
 

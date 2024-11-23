@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using WebGoatCore.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using WebGoatCore.Models;
+using WebGoat.NET.DTO;
 
 namespace WebGoatCore.Controllers
 {
@@ -124,8 +125,16 @@ namespace WebGoatCore.Controllers
         }
 
         [HttpGet]
-        public IActionResult ChangeAccountInfo()
+        public IActionResult ChangeAccountInfo(CustomerDTO request)
         {
+            var companyName = new CompanyName(request.CompanyName);
+            var contactTitle = new ContactTitle(request.ContactTitle);
+            var address = new Address(request.Address);
+            var city = new City(request.City);
+            var region = new Region(request.Region);
+            var postalCode = new PostalCode(request.PostalCode);
+            var country = new Country(request.Country);
+
             var customer = _customerRepository.GetCustomerByUsername(_userManager.GetUserName(User));
             if (customer == null)
             {
@@ -135,19 +144,20 @@ namespace WebGoatCore.Controllers
 
             return View(new ChangeAccountInfoViewModel()
             {
-                CompanyName = customer.CompanyName,
-                ContactTitle = customer.ContactTitle,
-                Address = customer.Address,
-                City = customer.City,
-                Region = customer.Region,
-                PostalCode = customer.PostalCode,
-                Country = customer.Country,
+                CompanyName = companyName.ToString(),
+                ContactTitle = customer.ContactTitle.ToString(),
+                Address = customer.Address.ToString(),
+                City = customer.City.ToString(),
+                Region = customer.Region.ToString(),
+                PostalCode = customer.PostalCode.ToString(),
+                Country = customer.Country.ToString(),
             });
         }
 
         [HttpPost]
         public IActionResult ChangeAccountInfo(ChangeAccountInfoViewModel model)
         {
+
             var customer = _customerRepository.GetCustomerByUsername(_userManager.GetUserName(User));
             if (customer == null)
             {
@@ -157,13 +167,14 @@ namespace WebGoatCore.Controllers
 
             if (ModelState.IsValid)
             {
-                customer.CompanyName = model.CompanyName ?? customer.CompanyName;
-                customer.ContactTitle = model.ContactTitle ?? customer.ContactTitle;
-                customer.Address = model.Address ?? customer.Address;
-                customer.City = model.City ?? customer.City;
-                customer.Region = model.Region ?? customer.Region;
-                customer.PostalCode = model.PostalCode ?? customer.PostalCode;
-                customer.Country = model.Country ?? customer.Country;
+                customer.CompanyName = model.CompanyName != null ? new CompanyName(model.CompanyName) : customer.CompanyName;
+                customer.ContactTitle = model.ContactTitle != null ? new ContactTitle(model.ContactTitle) : customer.ContactTitle;
+                customer.Address = model.Address != null ? new Address(model.Address) : customer.Address;
+                customer.City = model.City != null ? new City(model.City) : customer.City;
+                customer.Region = model.Region != null ? new Region(model.Region) : customer.Region;
+                customer.PostalCode = model.PostalCode != null ? new PostalCode(model.PostalCode) : customer.PostalCode;
+                customer.Country = model.Country != null ? new Country(model.Country) : customer.Country;
+
                 _customerRepository.SaveCustomer(customer);
 
                 model.UpdatedSucessfully = true;
