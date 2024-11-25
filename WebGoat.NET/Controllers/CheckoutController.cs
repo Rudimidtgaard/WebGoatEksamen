@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using WebGoatCore.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebGoatCore.Controllers
 {
@@ -158,6 +159,7 @@ namespace WebGoatCore.Controllers
             return RedirectToAction("Receipt");
         }
 
+        [Authorize]
         public IActionResult Receipt(int? id)
         {
             var orderId = HttpContext.Session.GetInt32("OrderId");
@@ -166,10 +168,10 @@ namespace WebGoatCore.Controllers
                 orderId = id;
             }
 
-            if (orderId == null)
+            if (orderId == null || orderId != id)
             {
                 ModelState.AddModelError(string.Empty, "No order specified. Please try again.");
-                return View();
+                return Forbid();
             }
 
             Order order;

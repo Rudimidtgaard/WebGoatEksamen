@@ -14,6 +14,7 @@ using System.Reflection;
 using Microsoft.Extensions.FileProviders;
 using WebGoatCore.Controllers;
 using WebGoatCore.Exceptions;
+using System.Security.Claims;
 
 namespace WebGoatCore
 {
@@ -66,6 +67,16 @@ namespace WebGoatCore
                 options.UseSqlite(NorthwindContext.ConnString)
                     .UseLazyLoadingProxies(),
                 ServiceLifetime.Scoped);
+            //services.AddAuthorization(options =>
+            //{
+            //    options.AddPolicy("OrderOwner", policy =>
+            //        policy.RequireAssertion(context =>
+            //        {
+            //            var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            //            var orderId = int.Parse(context.Resource.ToString());  
+            //            return CheckOrderOwnership(userId, orderId);
+            //        }));
+            //});
 
             services.AddDefaultIdentity<IdentityUser>()
                 .AddRoles<IdentityRole>()
@@ -105,7 +116,7 @@ namespace WebGoatCore
 
             services.AddSession(options =>
             {
-                options.Cookie.HttpOnly = false;
+                options.Cookie.HttpOnly = true;
                 options.IdleTimeout = TimeSpan.FromHours(1);
             });
 
