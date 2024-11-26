@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WebGoat.NET.Models;
+﻿using WebGoat.NET.Models;
 
 namespace WebGoat.NET.Tests.Models
 {
@@ -16,9 +11,25 @@ namespace WebGoat.NET.Tests.Models
         [InlineData("Det er en kendsgerning, at man bliver distraheret af læsbart indhold på en side, når man betragter dens layout. " +
         "Meningen med at bruge Lorem Ipsum er, at teksten indeholder mere eller mindre almindelig tekstopbygning i modsætning til")] // Long text
         [InlineData(".,!?")] // Special characters, but allowed
-        [InlineData("<p><b><i>hejsa</i></b></p>")]
-
         public void ShouldCreateBlogContentObjectWithValidInputString(string blogContentMethodInput)
+        {
+            // Arrange
+
+            // Act
+            var actualObject = new BlogContent(blogContentMethodInput);
+
+            // Assert
+            Assert.Equal(blogContentMethodInput, actualObject.GetValue());
+        }
+
+        [Theory]
+        [InlineData("<b>")]
+        [InlineData("<i>")]
+        [InlineData("<p>")]
+        [InlineData("<li>")]
+        [InlineData("<ol>")]
+        [InlineData("<p><b><i>hejsa</i></b></p>")]
+        public void ShouldAllowSpecificHtmlTagsAsInputString(string blogContentMethodInput)
         {
             // Arrange
 
@@ -54,5 +65,4 @@ namespace WebGoat.NET.Tests.Models
             Assert.Throws<ArgumentException>(() => new BlogContent(blogContentMethodInput));
         }
     }
-    
 }
