@@ -13,8 +13,11 @@ namespace WebGoat.NET.Tests.Models
         [InlineData("HelloWorld")] // Without space
         [InlineData("Hello World")] // With space
         [InlineData("Hello World æøå ÆØÅ")] // Danish characters
-        [InlineData("Det er en kendsgerning, at man bliver distraheret af læsbart indhold på en side, når man betragter dens layout. Meningen med at bruge Lorem Ipsum er, at teksten indeholder mere eller mindre almindelig tekstopbygning i modsætning til")] // Long text
+        [InlineData("Det er en kendsgerning, at man bliver distraheret af læsbart indhold på en side, når man betragter dens layout. " +
+        "Meningen med at bruge Lorem Ipsum er, at teksten indeholder mere eller mindre almindelig tekstopbygning i modsætning til")] // Long text
         [InlineData(".,!?")] // Special characters, but allowed
+        [InlineData("<p><b><i>hejsa</i></b></p>")]
+
         public void ShouldCreateBlogContentObjectWithValidInputString(string blogContentMethodInput)
         {
             // Arrange
