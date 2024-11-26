@@ -168,10 +168,10 @@ namespace WebGoatCore.Controllers
                 orderId = id;
             }
 
-            if (orderId == null || orderId != id)
+            if (orderId == null)
             {
                 ModelState.AddModelError(string.Empty, "No order specified. Please try again.");
-                return Forbid();
+                return View();
             }
 
             Order order;
