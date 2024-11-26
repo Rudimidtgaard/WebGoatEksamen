@@ -2,12 +2,19 @@
 
 @{
     ViewData["Title"] = "Respond";
+    var errorMessage = ViewData["ErrorMessage"];
+    if (errorMessage != null)
+    {
+        <div class="alert alert-danger">
+            @errorMessage
+        </div>
+    }
 }
 
 <partial name="_BlogEntryPartial" model=@Model/>
 <h1>Your response</h1>
 <form method="post">
-    <textarea name="contents" rows="2" cols="20" class="BlogEntryReplyText"></textarea>
+    <textarea name="Content" rows="2" cols="20" class="BlogEntryReplyText"></textarea>
     <br>
     <a href="javascript:history.go(-1)" style="float: left;">Cancel</a>
     <input type="submit" value="Submit Response" style="float: right;">

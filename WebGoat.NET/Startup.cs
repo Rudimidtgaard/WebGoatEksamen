@@ -14,8 +14,7 @@ using System.Reflection;
 using Microsoft.Extensions.FileProviders;
 using WebGoatCore.Controllers;
 using WebGoatCore.Exceptions;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace WebGoatCore
 {
@@ -68,6 +67,16 @@ namespace WebGoatCore
                 options.UseSqlite(NorthwindContext.ConnString)
                     .UseLazyLoadingProxies(),
                 ServiceLifetime.Scoped);
+            //services.AddAuthorization(options =>
+            //{
+            //    options.AddPolicy("OrderOwner", policy =>
+            //        policy.RequireAssertion(context =>
+            //        {
+            //            var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            //            var orderId = int.Parse(context.Resource.ToString());  
+            //            return CheckOrderOwnership(userId, orderId);
+            //        }));
+            //});
 
             services.AddDefaultIdentity<IdentityUser>()
                 .AddRoles<IdentityRole>()
@@ -76,12 +85,12 @@ namespace WebGoatCore
             services.Configure<IdentityOptions>(options =>
             {
                 // Password settings.
-                options.Password.RequireDigit = true;
-                options.Password.RequireLowercase = true;
-                options.Password.RequireNonAlphanumeric = true;
-                options.Password.RequireUppercase = true;
-                options.Password.RequiredLength = 8;
-                options.Password.RequiredUniqueChars = 2;
+                options.Password.RequireDigit = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequiredLength = 2;
+                options.Password.RequiredUniqueChars = 0;
 
                 // Lockout settings.
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
@@ -95,20 +104,19 @@ namespace WebGoatCore
             services.ConfigureApplicationCookie(options =>
             {
                 // Cookie settings
-                options.Cookie.HttpOnly = true;
+                options.Cookie.HttpOnly = false;
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
 
                 options.LoginPath = "/Account/Login";
                 options.AccessDeniedPath = "/Account/AccessDenied";
                 options.SlidingExpiration = true;
-                
             });
 
             services.AddDistributedMemoryCache();
 
             services.AddSession(options =>
             {
-                options.Cookie.HttpOnly = false;
+                options.Cookie.HttpOnly = true;
                 options.IdleTimeout = TimeSpan.FromHours(1);
             });
 
@@ -138,7 +146,7 @@ namespace WebGoatCore
                 app.UseExceptionHandler($"/{StatusCodeController.NAME}?code=500");
             }
 
-
+            app.UseStatusCodePagesWithRedirects($"/{StatusCodeController.NAME}?code={{0}}");
 
             app.UseStaticFiles();
 
@@ -146,7 +154,7 @@ namespace WebGoatCore
 
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseStatusCodePagesWithRedirects($"/{StatusCodeController.NAME}?code={{0}}");
+
             app.UseSession();
 
             app.UseEndpoints(endpoints =>

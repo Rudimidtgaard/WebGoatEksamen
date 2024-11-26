@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using WebGoatCore.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebGoatCore.Controllers
 {
@@ -158,6 +159,7 @@ namespace WebGoatCore.Controllers
             return RedirectToAction("Receipt");
         }
 
+        [Authorize]
         public IActionResult Receipt(int? id)
         {
             var orderId = HttpContext.Session.GetInt32("OrderId");

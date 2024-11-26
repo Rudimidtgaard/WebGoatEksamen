@@ -3,6 +3,9 @@ using WebGoatCore.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using WebGoat.NET.Models;
+using WebGoat.NET.ViewModels;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace WebGoatCore.Controllers
 {
@@ -30,19 +33,32 @@ namespace WebGoatCore.Controllers
         }
 
         [HttpPost("{entryId}")]
-        public IActionResult Reply(int entryId, string contents)
+        public IActionResult Reply(BlogContentViewModel request)
         {
-            var userName = User?.Identity?.Name ?? "Anonymous";
-            var response = new BlogResponse()
+            try
             {
-                Author = userName,
-                Contents = contents,
-                BlogEntryId = entryId,
-                ResponseDate = DateTime.Now
-            };
-            _blogResponseRepository.CreateBlogResponse(response);
+                var blogContent = new BlogContent(request.Content);
 
-            return RedirectToAction("Index");
+
+                var userName = User?.Identity?.Name ?? "Anonymous";
+                var response = new BlogResponse
+                {
+                    Author = userName,
+                    Content = blogContent,
+                    BlogEntryId = request.EntryId,
+                    ResponseDate = DateTime.Now
+                };
+                _blogResponseRepository.CreateBlogResponse(response);
+
+                return RedirectToAction("Index");
+            }
+            catch (ArgumentException ex)
+            {
+
+                ViewData["ErrorMessage"] = ex.Message;
+                return View("Create");
+            }
+
         }
 
         [HttpGet]
@@ -51,11 +67,14 @@ namespace WebGoatCore.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public IActionResult Create(string title, string contents)
+        public IActionResult Create(string title, BlogContentViewModel request)
         {
-            var blogEntry = _blogEntryRepository.CreateBlogEntry(title, contents, User!.Identity!.Name!);
+            var blogContent = new BlogContent(request.Content);
+            var blogEntry = _blogEntryRepository.CreateBlogEntry(title, blogContent, User!.Identity!.Name!);
             return View(blogEntry);
         }
+
+
 
     }
 }
