@@ -33,7 +33,7 @@ namespace WebGoat.NET.Models
                 throw new ArgumentException("Blog content cannot be empty");
             }
 
-            string pattern = @"^[a-zA-ZæøåÆØÅ.,!? ]+$";
+            string pattern = @"^(<(/?)(b|i|p|ol|li)>)|[a-zA-ZæøåÆØÅ.,!? ]+$";
 
 
             if (!Regex.IsMatch(blogContents, pattern))
