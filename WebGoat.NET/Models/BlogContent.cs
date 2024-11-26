@@ -9,32 +9,51 @@ namespace WebGoat.NET.Models
     {
         private string blogContents;
 
+        /// <summary>
+        /// Validates the content to ensure it is not empty and contains only allowed characters.
+        /// </summary>
+        /// <param name="blogContents"></param>
         public BlogContent(string blogContents)
         {
             IsBlogContentValid(blogContents);
             this.blogContents = blogContents;
         }
+        // Empty construtor for EF Core mapping
         protected BlogContent() { }
 
-        public string Value // Public property for EF Core mapping
+        // Public property for EF Core mapping
+        public string Value 
         {
+            // Required for EF Core to set the value during materialization
             get => blogContents;
-            private set => blogContents = value; // Required for EF Core to set the value during materialization
+            private set
+            {
+                // Ensure validation for EF Core
+                IsBlogContentValid(value); 
+                blogContents = value;
+            }
         }
         public string GetValue()
         {
             return this.blogContents;
         }
-        
+
+        /// <summary>
+        /// Validates the provided blog content to ensure it is not empty and contains only allowed characters. 
+        /// </summary>
+        /// <param name="blogContents"></param>
+        /// <exception cref="ArgumentException"></exception>
         private void IsBlogContentValid(string blogContents)
         {
+            // Check if the blog content is null or empty
             if (string.IsNullOrEmpty(blogContents))
             {
                 throw new ArgumentException("Blog content cannot be empty");
             }
-
+            // Define the regular expression pattern to allow only valid characters (letters, Danish characters, and punctuation)
             string pattern = @"^[a-zA-ZæøåÆØÅ.,!?]+$";
-
+            
+            // Check if the blog content matches the defined pattern
             if (!Regex.IsMatch(blogContents, pattern))
             {
 
