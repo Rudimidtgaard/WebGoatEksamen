@@ -1,12 +1,12 @@
 ﻿using System.Text.RegularExpressions;
 using System;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System.ComponentModel.DataAnnotations;
 
 namespace WebGoat.NET.Models
 {
     public class BlogContent
     {
+        [MaxLength(5000)]
         private string blogContents;
 
         /// <summary>
@@ -57,6 +57,11 @@ namespace WebGoat.NET.Models
             {
 
                 throw new ArgumentException("XSS not allowed 🤬");
+            }
+
+            if (blogContents.Length > 5000)
+            {
+                throw new ArgumentException("Only 5000 characters allowed per blog post");
             }
         }
 
