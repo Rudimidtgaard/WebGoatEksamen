@@ -74,5 +74,17 @@ namespace WebGoat.NET.Tests.Models
             // Assert
             Assert.Throws<ArgumentException>(() => new BlogContent(veryLongBlogContentMethodInput));
         }
+
+        [Fact]
+        public void ShouldThrowAnyExceptionWhenInputStringIsExtremlyLong()
+        {
+            // Arrange
+            int numberOfCharInTestString = 1000000000;
+            string veryLongBlogContentMethodInput = new string('a', numberOfCharInTestString);
+
+            // Act
+            // Assert
+            Assert.ThrowsAny<Exception> (() => new BlogContent(veryLongBlogContentMethodInput));
+        }
     }
 }

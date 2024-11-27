@@ -45,25 +45,31 @@ namespace WebGoat.NET.Models
         /// <exception cref="ArgumentException"></exception>
         private void IsBlogContentValid(string blogContents)
         {
-            // Check if the blog content is null or empty
-            if (string.IsNullOrEmpty(blogContents))
+            try
             {
-                throw new ArgumentException("Blog content cannot be empty");
+                // Check if the blog content is null or empty
+                if (string.IsNullOrEmpty(blogContents))
+                {
+                    throw new ArgumentException("Blog content cannot be empty");
+                }
+                // Define the regular expression pattern to allow only valid characters (letters, Danish characters, Spaces, punctuation and b, i, p, ol, li html-tags)
+                string pattern = @"^(<(/?)(b|i|p|ol|li)>)|[a-zA-ZæøåÆØÅ.,!? ]+$";
+
+                if (!Regex.IsMatch(blogContents, pattern))
+                {
+
+                    throw new ArgumentException("XSS not allowed 🤬");
+                }
+
+                if (blogContents.Length > 5000)
+                {
+                    throw new ArgumentException("Only 5000 characters allowed per blog post");
+                }
             }
-            // Define the regular expression pattern to allow only valid characters (letters, Danish characters, Spaces, punctuation and b, i, p, ol, li html-tags)
-            string pattern = @"^(<(/?)(b|i|p|ol|li)>)|[a-zA-ZæøåÆØÅ.,!? ]+$";
-
-            if (!Regex.IsMatch(blogContents, pattern))
+            catch (Exception)
             {
-
-                throw new ArgumentException("XSS not allowed 🤬");
-            }
-
-            if (blogContents.Length > 5000)
-            {
-                throw new ArgumentException("Only 5000 characters allowed per blog post");
+                throw;
             }
         }
-
     }
 }
