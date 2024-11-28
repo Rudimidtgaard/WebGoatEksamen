@@ -8,8 +8,6 @@ namespace WebGoat.NET.Tests.Models
         [InlineData("HelloWorld")] // Without space
         [InlineData("Hello World")] // With space
         [InlineData("Hello World æøå ÆØÅ")] // Danish characters
-        [InlineData("Det er en kendsgerning, at man bliver distraheret af læsbart indhold på en side, når man betragter dens layout. " +
-        "Meningen med at bruge Lorem Ipsum er, at teksten indeholder mere eller mindre almindelig tekstopbygning i modsætning til")] // Long text
         [InlineData(".,!?")] // Special characters, but allowed
         public void ShouldCreateBlogContentObjectWithValidInputString(string blogContentMethodInput)
         {
@@ -63,6 +61,30 @@ namespace WebGoat.NET.Tests.Models
 
             // Assert
             Assert.Throws<ArgumentException>(() => new BlogContent(blogContentMethodInput));
+        }
+
+        [Fact]
+        public void ShouldThrowArgumentExceptionWhenInputStringIsTooLong()
+        {
+            // Arrange
+            int numberOfCharInTestString = 5001;
+            string veryLongBlogContentMethodInput = new string('a', numberOfCharInTestString);
+            
+            // Act
+            // Assert
+            Assert.Throws<ArgumentException>(() => new BlogContent(veryLongBlogContentMethodInput));
+        }
+
+        [Fact]
+        public void ShouldThrowAnyExceptionWhenInputStringIsExtremlyLong()
+        {
+            // Arrange
+            int numberOfCharInTestString = 1000000000;
+            string veryLongBlogContentMethodInput = new string('a', numberOfCharInTestString);
+
+            // Act
+            // Assert
+            Assert.ThrowsAny<Exception> (() => new BlogContent(veryLongBlogContentMethodInput));
         }
     }
 }

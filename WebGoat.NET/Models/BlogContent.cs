@@ -1,12 +1,12 @@
 ﻿using System.Text.RegularExpressions;
 using System;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System.ComponentModel.DataAnnotations;
 
 namespace WebGoat.NET.Models
 {
     public class BlogContent
     {
+        [MaxLength(5000)]
         private string blogContents;
 
         /// <summary>
@@ -53,12 +53,21 @@ namespace WebGoat.NET.Models
             // Define the regular expression pattern to allow only valid characters (letters, Danish characters, Spaces, punctuation)
             string pattern = @"^[a-zA-ZæøåÆØÅ.,!?' 0-9]+$";
 
-            if (!Regex.IsMatch(blogContents, pattern))
-            {
+                if (!Regex.IsMatch(blogContents, pattern))
+                {
 
-                throw new ArgumentException("XSS not allowed 🤬");
+                    throw new ArgumentException("XSS not allowed 🤬");
+                }
+
+                if (blogContents.Length > 5000)
+                {
+                    throw new ArgumentException("Only 5000 characters allowed per blog post");
+                }
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
-
     }
 }
