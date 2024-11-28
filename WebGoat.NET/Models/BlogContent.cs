@@ -51,7 +51,7 @@ namespace WebGoat.NET.Models
                 throw new ArgumentException("Blog content cannot be empty");
             }
             // Define the regular expression pattern to allow only valid characters (letters, Danish characters, Spaces, punctuation)
-            string pattern = @"^[a-zA-ZæøåÆØÅ.,!?' 0-9]+$";
+            string pattern = @"^(?:[a-zA-Z0-9.,!?'<b></b><p></p><i></i><ol></ol><li></li>]|\s)*$";
 
                 if (!Regex.IsMatch(blogContents, pattern))
                 {
@@ -59,14 +59,9 @@ namespace WebGoat.NET.Models
                     throw new ArgumentException("XSS not allowed 🤬");
                 }
 
-                if (blogContents.Length > 5000)
-                {
-                    throw new ArgumentException("Only 5000 characters allowed per blog post");
-                }
-            }
-            catch (Exception)
+            if (blogContents.Length > 5000)
             {
-                throw;
+                throw new ArgumentException("Only 5000 characters allowed per blog post");
             }
         }
     }
