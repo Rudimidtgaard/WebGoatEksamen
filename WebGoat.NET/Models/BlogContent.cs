@@ -50,7 +50,8 @@ namespace WebGoat.NET.Models
             {
                 throw new ArgumentException("Blog content cannot be empty");
             }
-            // Define the regular expression pattern to allow only valid characters (letters, Danish characters, Spaces, punctuation)
+            // Define the regular expression pattern to allow only valid characters
+            // (letters, Danish characters, Spaces, punctuation and b, p, i, ol, li HTML-Tags)
             string pattern = @"^(?:[a-zA-Z0-9.,!?'<b></b><p></p><i></i><ol></ol><li></li>]|\s)*$";
 
                 if (!Regex.IsMatch(blogContents, pattern))
