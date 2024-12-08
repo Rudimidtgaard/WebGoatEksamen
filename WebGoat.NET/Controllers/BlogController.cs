@@ -61,6 +61,7 @@ namespace WebGoatCore.Controllers
 
         }
 
+
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public IActionResult Create() => View();

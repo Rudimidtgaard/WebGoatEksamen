@@ -1,7 +1,13 @@
 ﻿using System.Text.RegularExpressions;
 using System;
+<<<<<<< Updated upstream
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+=======
+using System.ComponentModel.DataAnnotations;
+using AngleSharp.Io;
+using Ganss.Xss;
+>>>>>>> Stashed changes
 
 namespace WebGoat.NET.Models
 {
@@ -33,9 +39,19 @@ namespace WebGoat.NET.Models
                 throw new ArgumentException("Blog content cannot be empty");
             }
 
+<<<<<<< Updated upstream
             string pattern = @"^[a-zA-ZæøåÆØÅ.,!?]+$";
 
             if (!Regex.IsMatch(blogContents, pattern))
+=======
+            // Initialize the HtmlSanitizer from Ganss.XSS
+            var sanitizer = new HtmlSanitizer();
+            // Sanitize the incoming content to prevent XSS
+            string sanitizedContent = sanitizer.Sanitize(blogContents);
+
+            // Validate length (max 5000 characters)
+            if (sanitizedContent.Length > 5000)
+>>>>>>> Stashed changes
             {
 
                 throw new ArgumentException("XSS not allowed 🤬");

@@ -14,7 +14,8 @@
 <partial name="_BlogEntryPartial" model=@Model/>
 <h1>Your response</h1>
 <form method="post">
-    <textarea name="Content" rows="2" cols="20" class="BlogEntryReplyText"></textarea>
+    <div id="editor-container" style="height: 200px;"></div>
+    <textarea id="editor-content"   name="Content" rows="2" cols="20" class="BlogEntryReplyText"></textarea>
     <br>
     <a href="javascript:history.go(-1)" style="float: left;">Cancel</a>
     <input type="submit" value="Submit Response" style="float: right;">
