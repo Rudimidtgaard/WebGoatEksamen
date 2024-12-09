@@ -1,6 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using System;
 using System.ComponentModel.DataAnnotations;
+using Ganss.Xss;
 
 namespace WebGoat.NET.Models
 {
@@ -50,17 +51,15 @@ namespace WebGoat.NET.Models
             {
                 throw new ArgumentException("Blog content cannot be empty");
             }
-            // Define the regular expression pattern to allow only valid characters
-            // (Alphanumeric, Spaces, punctuation)
-            string pattern = @"^(?:[a-zA-Z0-9.,!?'<b></b><p></p><i></i><ol></ol><li></li>]|\s)*$";
+            // Initialize the HtmlSanitizer from Ganss.XSS
+            var sanitizer = new HtmlSanitizer();
+            // Sanitize the incoming content to prevent XSS
+            string sanitizedContent = sanitizer.Sanitize(blogContents);
 
-                if (!Regex.IsMatch(blogContents, pattern))
-                {
+            // Validate length (max 5000 characters)
+            if (sanitizedContent.Length > 5000)
 
-                    throw new ArgumentException("XSS not allowed 🤬");
-                }
-
-            if (blogContents.Length > 5000)
+                if (blogContents.Length > 5000)
             {
                 throw new ArgumentException("Only 5000 characters allowed per blog post");
             }
